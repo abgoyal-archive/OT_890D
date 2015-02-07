@@ -1,0 +1,6 @@
+menu "MT6516 MATV Driver"
+    depends on ARCH_MT6516
+    config MATV_DRIVER
+	    tristate "MT6516 MATV Driver"	
+	    default y
+endmenu

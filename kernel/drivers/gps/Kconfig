@@ -1,0 +1,16 @@
+menuconfig GPS
+	tristate "GPS drivers"
+	default y
+	---help---
+	  Say Y here for supporting GPS.
+
+if GPS
+
+config MT6516_GPS
+	tristate "MT6516 GPS driver"
+	depends on ARCH_MT6516 && GPS=y
+	default y
+	---help---
+	  MT6516 internal GPS driver
+
+endif # GPS

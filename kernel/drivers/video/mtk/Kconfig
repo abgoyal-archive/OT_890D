@@ -1,0 +1,45 @@
+config FB_MT6516
+	bool "MediaTek (MT6516) LCD Driver"
+	depends on FB && ARCH_MT6516
+	select FB_CFB_FILLRECT
+	select FB_CFB_COPYAREA
+	select FB_CFB_IMAGEBLIT
+	select FB_SOFT_CURSOR
+	---help---
+	  Framebuffer for MT6516
+
+config FB_MT6516_SUPPORT_ASSERTION_LAYER
+	bool "Support MT6516 Assertion Layer for AEE"
+	depends on FB_MT6516
+    select FONT_8x16
+	default y
+	---help---
+	  Support MT6516 Assertion Layer for AEE
+
+config FB_MT6516_EVB_USE_HVGA_LCM
+	bool "Use MagnaChip TA7601 HVGA LCM on EVB"
+	depends on FB_MT6516 && MT6516_EVB_BOARD
+	default n
+	---help---
+	  Use MagnaChip TA7601 HVGA LCM on EVB
+	  
+config FB_MT6516_SIMULATE_MULTIPLE_RESOLUTIONS_ON_OPPO
+	bool "Simulate multiple resolutions on MTK OPPO reference phone"
+	depends on FB_MT6516 && MT6516_OPPO_BOARD
+	default n
+	---help---
+	  Simulate multiple resolutions on MTK OPPO reference phone
+
+config FB_MT6516_OPPO_SIMUL_WIDTH
+	int "OPPO simulation width"
+	depends on FB_MT6516_SIMULATE_MULTIPLE_RESOLUTIONS_ON_OPPO
+	default 320
+	---help---
+	  OPPO simulation width
+
+config FB_MT6516_OPPO_SIMUL_HEIGHT
+	int "OPPO simulation height"
+	depends on FB_MT6516_SIMULATE_MULTIPLE_RESOLUTIONS_ON_OPPO
+	default 480
+	---help---
+	  OPPO simulation height

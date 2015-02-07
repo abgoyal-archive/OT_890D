@@ -1,0 +1,64 @@
+if ARCH_MT3351
+
+
+menu "MT3351 Board Support Package"
+
+comment "MT3351 Board Type"
+
+choice
+bool "Board"
+
+config MT3351_EVB_BOARD
+	bool "MT3351 EVB Board"
+	depends on ARCH_MT3351
+	default y
+	help
+		Select if you are using an EVB board
+
+config MT3351_EVK_BOARD
+	bool "MT3351 EVK Board"
+	depends on ARCH_MT3351
+	default n
+	help
+		Select if you are using an EVK board
+
+config MT3351_EVZ_BOARD
+	bool "MT3351 EVZ Board"
+	depends on ARCH_MT3351
+	default n
+	help
+		Select if you are using an EVK board
+
+endchoice
+
+choice
+
+bool "MCU TYPE"
+
+config MT3351_CPU_208MHZ_MCU_104MHZ
+	bool "MT3351 CPU 208MHz + EMI 104MHz"
+    depends on ARCH_MT3351
+    help
+          Enable 208 MHz clock for MT3351 CPU. If unsure, say N.
+
+config MT3351_CPU_416MHZ_MCU_104MHZ
+	bool "MT3351 CPU 416MHz + EMI 104MHz"
+    depends on ARCH_MT3351
+	default n
+	help
+          Enable 416MHz clock for MT3351 CPU. If unsure, say Y.
+
+config MT3351_CPU_468MHZ_MCU_117MHZ
+	bool "MT3351 CPU 468MHz + EMI 117MHz"
+    depends on ARCH_MT3351
+    default y
+	help
+          Enable 468MHz clock for MT3351 CPU. If unsure, say N.
+endchoice
+
+endmenu
+
+
+
+endif
+

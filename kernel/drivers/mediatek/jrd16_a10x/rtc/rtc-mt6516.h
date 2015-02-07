@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/jrd16_a10x/kernel/rtc/rtc/rtc-mt6516.h

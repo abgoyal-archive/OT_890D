@@ -1,0 +1,13 @@
+menu "MT6516 Image Option"
+    depends on ARCH_MT6516
+
+
+
+config JPEG_MT6516
+	tristate "JPEG driver"
+	default y
+	
+endmenu
+
+			 
+# EOF

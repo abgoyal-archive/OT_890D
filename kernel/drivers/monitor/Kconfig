@@ -1,0 +1,6 @@
+menu "MT6516 MONITOR"
+    depends on ARCH_MT6516
+    config MONITOR
+	    tristate "MT6516 MONITOR"	
+	    default y
+endmenu

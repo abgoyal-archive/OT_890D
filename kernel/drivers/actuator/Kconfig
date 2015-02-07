@@ -1,0 +1,20 @@
+menuconfig ACTUATOR
+	tristate "actuator drivers"
+	default y
+	---help---
+	  Say Y here for supporting actuator.
+
+if ACTUATOR
+
+#
+# FM50AF configuration
+#
+
+config FM50AF
+	tristate "FM50AF driver"
+	depends on ARCH_MT6516 && ACTUATOR=y
+	default y
+	---help---
+	  FM50AF lens module driver
+
+endif # ACTUATOR

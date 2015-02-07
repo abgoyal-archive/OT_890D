@@ -1,0 +1,13 @@
+
+
+#ifndef __ASM_ARCH_OVERO_H
+#define __ASM_ARCH_OVERO_H
+
+#define OVERO_GPIO_BT_XGATE	15
+#define OVERO_GPIO_W2W_NRESET	16
+#define OVERO_GPIO_BT_NRESET	164
+#define OVERO_GPIO_USBH_CPEN	168
+#define OVERO_GPIO_USBH_NRESET	183
+
+#endif /* ____ASM_ARCH_OVERO_H */
+

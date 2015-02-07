@@ -1,0 +1,12 @@
+arch/arm/mach-mt6516 NEED
+drivers/actuator NEED
+drivers/input/keyboard NEED
+drivers/input/touchscreen NEED
+drivers/hwmon NEED
+drivers/m3d NEED
+drivers/mtd/nand NEED
+drivers/net/ccmni NEED
+drivers/power NEED
+drivers/video/mtk NEED
+net/bluetooth NEED
+sound/yususound NEED

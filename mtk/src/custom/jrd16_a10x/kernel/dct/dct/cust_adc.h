@@ -1,0 +1,16 @@
+
+
+#ifndef __CUST_AUXADC_TOOL_H
+#define __CUST_AUXADC_TOOL_H
+
+
+#define AUXADC_REF_CURRENT_CHANNEL     0
+#define AUXADC_BATTERY_VOLTAGE_CHANNEL     1
+#define AUXADC_CHARGER_VOLTAGE_CHANNEL     3
+#define AUXADC_HF_MIC_CHANNEL     5
+#define AUXADC_TEMPERATURE_CHANNEL     2	/*jrd change from 8 --> 2*/
+
+
+#endif //_CUST_AUXADC_TOOL_H
+
+

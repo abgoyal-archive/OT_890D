@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/jrd16_a10x/kernel/touchpanel/generic/tpd_custom.h

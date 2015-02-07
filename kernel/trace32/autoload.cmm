@@ -1,0 +1,98 @@
+// Autoload script, called by TRACE32 if symbols are to be loaded
+
+// define local macros
+ local &filename &basename &progname &symfilename &filepath &code &data &space
+
+// get filename and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+ 
+ entry &filename &type &code &data &space
+ 
+ //print "autoload: " &filename " " &type " " &code " " &data " " &space
+ 
+ // &filename:      name of process/file
+ // &type:          type of file: 1=process, 2=library, 3=kernel module
+ // &code:          text segment address
+ // &data:          data segment address
+ // &space:         space id of process
+ 
+// get symbol file name and program name
+ &basename=string.cut(&filename,-string.len(os.file.extension(&filename)))
+ if (&type==1)
+   &symfilename="&basename"
+ if (&type==3)
+   &symfilename="&basename"+".ko"
+ &progname=os.file.name("&basename")
+
+// delete program if it already exists or other code is already there
+ sYmbol.Delete &code
+ if y.exist("\\&progname")
+   sYmbol.Delete \\&progname
+ GROUP.Delete "&progname"
+
+// search file in source search path and open dialog when not there
+ &filepath=y.searchfile("&symfilename")
+ if !os.file("&filepath")
+ (
+   local &file
+   &file=os.file.name("&symfilename")
+   winpos ,,,,,, filebox normal "Searching symbols for &filename"
+   dialog.file "*\&file"
+   entry %line &filepath
+   if "&filepath"==""
+     enddo
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ if (&type==1)  // processes
+ (
+   Data.LOAD.Elf "&filepath" &space:0 /nocode /noclear
+   ;MMU.TaskPageTable.SCAN &space:0     // not necessary: done by MMU.TABLEWALK
+   GROUP.Create "&progname" &space:0x0--0xffffffff /GREEN
+ )
+ 
+ if (&type==3)  // modules
+ (
+   local  &text 
+   global &reloc
+
+   &magic=task.mod.magic("&progname")
+   &text=task.mod.section(".text",&magic)
+   if &text==0xffffffff
+   (
+      print "Error loading symbols: could not get section addresses"
+      enddo
+   )
+ 
+   &reloc=""
+   gosub add_section .text
+   gosub add_section .init.text
+   gosub add_section .rodata
+   gosub add_section .data
+   gosub add_section .bss
+
+   Data.LOAD.Elf &filepath /nocode /noclear &reloc
+    ;MMU.SCANALL     // not necessary: done by MMU.TABLEWALK
+   GROUP.Create "&progname" y.secrange(\\&progname\.text) /YELLOW
+ )
+ 
+ if ((&type&0xffff)==2) // libraries
+ (
+   Data.LOAD.Elf &filepath &space:&code /nocode /noclear
+ )
+ 
+ enddo
+
+
+// subprogram for module section relocation
+add_section:
+
+ local &name &section
+ entry &name
+
+ &section=task.mod.section("&name",&magic)
+ if &section!=0xffffffff
+     &reloc="&reloc"+" /reloc &name at &section"
+ 
+ return

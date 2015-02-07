@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/common/kernel/magnetometer/inc/cust_mag.h

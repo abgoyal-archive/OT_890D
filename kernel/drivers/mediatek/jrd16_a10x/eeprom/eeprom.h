@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/common/kernel/eeprom/inc/eeprom.h

@@ -1,0 +1,6 @@
+menu "MT6516 H264 Decoder Driver"
+    depends on ARCH_MT6516
+    config H264_DECODER_DRIVER
+	    tristate "MT6516 H264 Decoder Driver"	
+	    default y
+endmenu

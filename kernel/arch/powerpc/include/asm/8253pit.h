@@ -1,0 +1,8 @@
+
+#ifndef _ASM_POWERPC_8253PIT_H
+#define _ASM_POWERPC_8253PIT_H
+
+
+#define PIT_TICK_RATE	1193182UL
+
+#endif	/* _ASM_POWERPC_8253PIT_H */

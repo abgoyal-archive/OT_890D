@@ -1,0 +1,87 @@
+
+
+#ifndef JSDOMGlobalObject_h
+#define JSDOMGlobalObject_h
+
+#include <runtime/JSGlobalObject.h>
+
+namespace WebCore {
+
+    class Document;
+    class Event;
+    class JSLazyEventListener;
+    class JSEventListener;
+    class ScriptExecutionContext;
+
+    typedef HashMap<const JSC::ClassInfo*, RefPtr<JSC::Structure> > JSDOMStructureMap;
+    typedef HashMap<const JSC::ClassInfo*, JSC::JSObject*> JSDOMConstructorMap;
+
+    class JSDOMGlobalObject : public JSC::JSGlobalObject {
+        typedef JSC::JSGlobalObject Base;
+    protected:
+        struct JSDOMGlobalObjectData;
+
+        JSDOMGlobalObject(PassRefPtr<JSC::Structure>, JSDOMGlobalObjectData*, JSC::JSObject* thisValue);
+        virtual ~JSDOMGlobalObject();
+
+    public:
+        JSDOMStructureMap& structures() { return d()->structures; }
+        JSDOMConstructorMap& constructors() const { return d()->constructors; }
+
+        virtual ScriptExecutionContext* scriptExecutionContext() const = 0;
+
+        // Finds a wrapper of a GC-unprotected JS EventListener, returns 0 if no existing one.
+        JSEventListener* findJSEventListener(JSC::JSValue);
+
+        // Finds or creates a wrapper of a JS EventListener. JS EventListener object is *NOT* GC-protected.
+        PassRefPtr<JSEventListener> findOrCreateJSEventListener(JSC::JSValue);
+
+        // Creates a GC-protected JS EventListener for an "onXXX" event attribute.
+        // These listeners cannot be removed through the removeEventListener API.
+        PassRefPtr<JSEventListener> createJSAttributeEventListener(JSC::JSValue);
+
+        typedef HashMap<JSC::JSObject*, JSEventListener*> JSListenersMap;
+
+        JSListenersMap& jsEventListeners();
+
+        // Make binding code generation easier.
+        JSDOMGlobalObject* globalObject() { return this; }
+
+        void setCurrentEvent(Event*);
+        Event* currentEvent() const;
+
+        virtual void markChildren(JSC::MarkStack&);
+
+    protected:
+        struct JSDOMGlobalObjectData : public JSC::JSGlobalObject::JSGlobalObjectData {
+            JSDOMGlobalObjectData();
+
+            JSDOMStructureMap structures;
+            JSDOMConstructorMap constructors;
+
+            JSDOMGlobalObject::JSListenersMap jsEventListeners;
+
+            Event* evt;
+        };
+
+    private:
+        JSDOMGlobalObjectData* d() const { return static_cast<JSDOMGlobalObjectData*>(JSC::JSVariableObject::d); }
+    };
+
+    template<class ConstructorClass>
+    inline JSC::JSObject* getDOMConstructor(JSC::ExecState* exec, const JSDOMGlobalObject* globalObject)
+    {
+        if (JSC::JSObject* constructor = globalObject->constructors().get(&ConstructorClass::s_info))
+            return constructor;
+        JSC::JSObject* constructor = new (exec) ConstructorClass(exec, const_cast<JSDOMGlobalObject*>(globalObject));
+        ASSERT(!globalObject->constructors().contains(&ConstructorClass::s_info));
+        globalObject->constructors().set(&ConstructorClass::s_info, constructor);
+        return constructor;
+    }
+
+    JSDOMGlobalObject* toJSDOMGlobalObject(Document*);
+    JSDOMGlobalObject* toJSDOMGlobalObject(ScriptExecutionContext*);
+
+} // namespace WebCore
+
+#endif // JSDOMGlobalObject_h

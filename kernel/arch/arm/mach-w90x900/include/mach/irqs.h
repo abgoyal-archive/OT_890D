@@ -1,0 +1,23 @@
+
+
+#ifndef __ASM_ARCH_IRQS_H
+#define __ASM_ARCH_IRQS_H
+
+
+#define W90X900_IRQ(x)	(x)
+
+/* Main cpu interrupts */
+
+#define IRQ_WDT		W90X900_IRQ(1)
+#define IRQ_UART0	W90X900_IRQ(7)
+#define IRQ_UART1	W90X900_IRQ(8)
+#define IRQ_UART2	W90X900_IRQ(9)
+#define IRQ_UART3	W90X900_IRQ(10)
+#define IRQ_UART4	W90X900_IRQ(11)
+#define IRQ_TIMER0	W90X900_IRQ(12)
+#define IRQ_TIMER1	W90X900_IRQ(13)
+#define IRQ_T_INT_GROUP	W90X900_IRQ(14)
+#define IRQ_ADC		W90X900_IRQ(31)
+#define NR_IRQS		(IRQ_ADC+1)
+
+#endif /* __ASM_ARCH_IRQ_H */

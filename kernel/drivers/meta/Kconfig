@@ -1,0 +1,6 @@
+menu "MT6516 META"
+    depends on ARCH_MT6516
+    config META
+	    tristate "MT6516 META"	
+	    default y
+endmenu

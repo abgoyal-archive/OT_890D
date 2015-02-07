@@ -1,0 +1,5 @@
+menu "MT6516 SOUND DIRVER"
+    config SOUND_MT6516
+    	bool "MT6516 SOUND DIRVER"
+	    default y
+endmenu

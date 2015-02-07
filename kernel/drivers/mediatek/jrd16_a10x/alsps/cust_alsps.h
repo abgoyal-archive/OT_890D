@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/common/kernel/alsps/inc/cust_alsps.h

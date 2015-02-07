@@ -1,0 +1,7 @@
+menu "MT6516 M3D Device Driver"
+    depends on ARCH_MT6516
+	config M3D_DRIVER
+		tristate "MT6516 M3D Device Driver"
+		default y
+endmenu
+

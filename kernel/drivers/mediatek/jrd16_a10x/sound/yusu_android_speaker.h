@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/common/kernel/sound/inc/yusu_android_speaker.h

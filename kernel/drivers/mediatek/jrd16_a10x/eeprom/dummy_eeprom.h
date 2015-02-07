@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/common/kernel/eeprom/dummy_eeprom/dummy_eeprom.h

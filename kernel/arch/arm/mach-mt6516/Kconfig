@@ -1,0 +1,122 @@
+if ARCH_MT6516
+
+
+menu "MT6516 Board Support Package"
+
+comment "MT6516 Board Type"
+
+choice
+bool "Board"
+
+config MT6516_EVB_BOARD
+	bool "MT6516 EVB Board"
+	depends on ARCH_MT6516
+	help
+		Select if you are using an EVB board
+
+config MT6516_PHONE_BOARD
+	bool "MT6516 PHONE Board"
+	depends on ARCH_MT6516
+	help
+		Select if you are using an phone board
+
+config MT6516_GEMINI_BOARD
+	bool "MT6516 GEMINI Board"
+	depends on ARCH_MT6516
+	help
+		Select if you are using an phone board
+
+config MT6516_OPPO_BOARD
+	bool "MT6516 OPPO Board"
+	depends on ARCH_MT6516
+	help
+		Select if you are using an phone board
+
+config MT6516_E1K_BOARD
+	bool "MT6516 E1000 Board"
+	depends on ARCH_MT6516
+	help
+		Select if you are using an phone board
+
+endchoice
+
+config MT6516_GEMAX_BOARD
+	bool "MT6516 GEMAX Board (GEMINI with WIMAX)"
+	depends on ARCH_MT6516 && MT6516_GEMINI_BOARD
+	help
+		Select if you are using an GEMINI with wimax phone board
+
+choice
+
+bool "MCU TYPE"
+
+config MT6516_CPU_208MHZ_MCU_104MHZ
+	bool "MT6516 CPU 208MHz + EMI 104MHz"
+    depends on ARCH_MT6516
+    help
+          Enable 208 MHz clock for MT6516 CPU. If unsure, say N.
+
+config MT6516_CPU_416MHZ_MCU_104MHZ
+	bool "MT6516 CPU 416MHz + EMI 104MHz"
+    depends on ARCH_MT6516
+	help
+          Enable 416MHz clock for MT6516 CPU. If unsure, say Y.
+
+config MT6516_CPU_468MHZ_MCU_117MHZ
+	bool "MT6516 CPU 468MHz + EMI 117MHz"
+        depends on ARCH_MT6516
+	help
+          Enable 468MHz clock for MT6516 CPU. If unsure, say N.
+endchoice
+
+config MAX_DRAM_SIZE_SUPPORT
+	hex "The maximum size of the DRAM can be supported in the kernel"
+	default 0x8000000
+	depends on ARCH_MT6516
+	help
+		Define the maximum size of the kernel can be supported.
+	        If will modify the memory size if it size is smaller than 
+                the memory size passed by the boot loader to the MAX_DRAM_SIZE_S                UPPORT.
+   		Notice that the maximum DRAM size is including the memory size
+	        reserved for the modem and the PMEM.
+
+config CEVA_MT6516
+	bool "Enable CEVA"
+	depends on ARCH_MT6516
+	default y
+	help
+		Enable CEVA
+
+config RESERVED_MEM_SIZE_FOR_CEVA
+	hex "Reserved memory size for CEVA"
+	default 0x400000
+	depends on ARCH_MT6516 && CEVA_MT6516
+	help
+		Configure the reserved memory size for CEVA.
+        	The tag.mem.size will be deduced by the reserved size 
+	        in the "fixup" function.
+
+
+config RESERVED_MEM_SIZE_FOR_PMEM
+	hex "Reserved memory size for PMEM"
+	default 0x1400000
+	depends on ARCH_MT6516
+	help
+		Configure the reserved memory size for PMEM. 
+        	The tag.mem.size will be deduced by the reserved size 
+	        in the "fixup" function.
+
+config AEE_FEATURE
+	tristate "Enable Android Exception Enhancement"
+	default n
+	depends on APANIC
+	select CRC32
+	help
+		Enable Android Exception Enhancement
+
+endmenu
+
+
+
+endif
+

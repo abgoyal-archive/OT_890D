@@ -1,0 +1,6 @@
+menu "MT6516 MPEG4_Decoder Driver"
+    depends on ARCH_MT6516
+    config MPEG4_Decoder_DRIVER
+	    tristate "MT6516 MPEG4_Decoder Driver"	
+	    default y
+endmenu

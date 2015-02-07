@@ -1,0 +1,13 @@
+
+
+#ifndef __OMAP_BOARD_PALMTT_H
+#define __OMAP_BOARD_PALMTT_H
+
+#define PALMTT_USBDETECT_GPIO	0
+#define PALMTT_CABLE_GPIO	1
+#define PALMTT_LED_GPIO		3
+#define PALMTT_PENIRQ_GPIO	6
+#define PALMTT_MMC_WP_GPIO	8
+#define PALMTT_HDQ_GPIO		11
+
+#endif	/* __OMAP_BOARD_PALMTT_H */

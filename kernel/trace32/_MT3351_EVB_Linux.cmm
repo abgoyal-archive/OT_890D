@@ -1,0 +1,222 @@
+;System.Down
+;TASK.RESet
+;Break.Delete
+
+
+System.RESet
+Break.Delete 
+
+MAP.RESet
+sYmbol.RESet
+MMU.RESet
+GROUP.RESet
+
+System.CPU ARM1176JZ
+System.Option Cflush on    	;flush the cache to avoid data consistency
+System.JtagClock Rtck
+;System.JtagClock 5MHz
+;System.Option WaitReset on
+;System.Option ResBreak off 	;Don't hold the ARM11 core after reset
+System.Option EnReset off
+
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; used to detect non-existent coprocessor
+ SYStem.Option MMU ON           ; enable space ids to virtual addresses
+
+
+
+SYStem.Up
+;System.Option EnReset on
+;SYStem.Up
+Register.REset
+
+;disbale interrupt during assembly step
+SETUP.IMASKASM	ON
+;disbale interrupt during C step
+SETUP.IMASKHLL	ON
+
+; turn off mmu
+ d.s c15:0x1 0
+
+Y.SPATH.RESET ; reset all source path
+
+Y.SPATH.SRD ../drivers/android
+Y.SPATH.SRD ../drivers/mmc/host
+Y.SPATH.SRD ../drivers/mmc/core
+Y.SPATH.SRD ../drivers/block
+Y.SPATH.SRD ../drivers/base
+;Y.SPATH.SRD ../lib
+Y.SPATH.SRD ../init
+Y.SPATH.SRD ../arch/arm/mach-mt3351
+Y.SPATH.SRD ../arch/arm/kernel
+Y.SPATH.SRD ../arch/arm/mm
+Y.SPATH.SRD ../kernel/
+;Y.SPATH.SRD ../drivers/Rhine
+Y.SPATH.SRD ../fs
+Y.SPATH.SRD ../mm
+Y.SPATH.SRD ../drivers/serial
+Y.SPATH.SRD ../drivers/input
+Y.SPATH.SRD ../drivers/input/touchscreen
+Y.SPATH.SRD ../drivers/video
+Y.SPATH.SRD ../drivers/video/mtk
+
+
+&smode=5 ; 1: DDR x16 (PLL13MHZ)
+         ; 2: DDR x16 (PLL52MHZ)
+         ; 3: DDR x16 (PLL78MHZ)
+         ; 4: DDR x16 (PLL104MHZ)          
+         ; 5: DDR x16 (PLL117MHZ)        
+
+;EMI bank2/bank3 Chip enable
+;D.S SD:0x80002600 %LE %LONG 0x00300000
+
+IF &smode==1  ; DDR x16 (PLL13MHZ)
+(
+    D.S SD:0x80020078 %LE %LONG 0x80000703  ; GENA from 70->78
+   ;D.S SD:0x80020080 %LE %LONG 0x04000000  ; GENB from 78->80
+   ;D.S SD:0x80020090 %LE %LONG 0x0004000B  ; GEND from 88->90  //FPGA
+    D.S SD:0x80020090 %LE %LONG 0x00020001  ; GEND from 88->90  //EVB
+;13MHz setting start
+    D.S SD:0x80020040 %LE %LONG 0x00224000  ; CONI;
+    D.S SD:0x80020048 %LE %LONG 0x3CF33223  ; CONJ
+    D.S SD:0x80020050 %LE %LONG 0x00500000  ; CONK
+   ;D.S SD:0x80020058 %LE %LONG 0x00007714  ; CONL
+    D.S SD:0x80020058 %LE %LONG 0x00037713  ; CONL
+    D.S SD:0x80020060 %LE %LONG 0x80808080  ; CONM
+    D.S SD:0x800200C0 %LE %LONG 0x00000000  ; DELE
+    D.S SD:0x800200C8 %LE %LONG 0x00000000  ; DELF
+    D.S SD:0x800200D0 %LE %LONG 0x00000000  ; DELG
+    D.S SD:0x800200D8 %LE %LONG 0x00000000  ; DELH
+    D.S SD:0x80020158 %LE %LONG 0x80808080  ; DQSA
+    D.S SD:0x800200E0 %LE %LONG 0x00008888  ; DELI
+;13MHz setting end
+)
+
+IF &smode==2  ; DDR x16 (PLL52MHZ)
+(
+    D.S SD:0x80020078 %LE %LONG 0x80000703  ; GENA from 70->78
+   ;D.S SD:0x80020080 %LE %LONG 0x04000000  ; GENB from 78->80
+   ;D.S SD:0x80020090 %LE %LONG 0x0004000B  ; GEND from 88->90  //FPGA
+    D.S SD:0x80020090 %LE %LONG 0x00020001  ; GEND from 88->90  //EVB
+;52MHz setting start
+    D.S SD:0x80020040 %LE %LONG 0x00334000  ; CONI
+    D.S SD:0x80020048 %LE %LONG 0x3CF33223  ; CONJ
+    D.S SD:0x80020050 %LE %LONG 0x00500000  ; CONK
+   ;D.S SD:0x80020058 %LE %LONG 0x00007714  ; CONL
+    D.S SD:0x80020058 %LE %LONG 0x00037714  ; CONL
+    D.S SD:0x80020060 %LE %LONG 0x80808080  ; CONM
+    D.S SD:0x800200C0 %LE %LONG 0x00000000  ; DELE
+    D.S SD:0x800200C8 %LE %LONG 0x00000000  ; DELF
+    D.S SD:0x800200D0 %LE %LONG 0x00000000  ; DELG
+    D.S SD:0x800200D8 %LE %LONG 0x00000000  ; DELH
+    D.S SD:0x80020158 %LE %LONG 0x80808080  ; DQSA
+    D.S SD:0x800200E0 %LE %LONG 0x00008888  ; DELI
+;52MHz setting end
+)
+
+IF &smode==3  ; DDR x16 (PLL78MHZ)
+(
+    D.S SD:0x80020078 %LE %LONG 0x80000703  ; GENA from 70->78
+   ;D.S SD:0x80020080 %LE %LONG 0x04000000  ; GENB from 78->80
+   ;D.S SD:0x80020090 %LE %LONG 0x0004000B  ; GEND from 88->90  //FPGA
+    D.S SD:0x80020090 %LE %LONG 0x00020001  ; GEND from 88->90  //EVB
+;78MHz setting start
+    D.S SD:0x80020040 %LE %LONG 0x00334000  ; CONI
+    D.S SD:0x80020048 %LE %LONG 0x3CF33623  ; CONJ
+    D.S SD:0x80020050 %LE %LONG 0x00500000  ; CONK
+   ;D.S SD:0x80020058 %LE %LONG 0x00007714  ; CONL
+    D.S SD:0x80020058 %LE %LONG 0x80037715  ; CONL
+    D.S SD:0x80020060 %LE %LONG 0x80808080  ; CONM
+    D.S SD:0x800200C0 %LE %LONG 0x00000000  ; DELE
+    D.S SD:0x800200C8 %LE %LONG 0x00000000  ; DELF
+    D.S SD:0x800200D0 %LE %LONG 0x00000000  ; DELG
+    D.S SD:0x800200D8 %LE %LONG 0x00000000  ; DELH
+    D.S SD:0x80020158 %LE %LONG 0x80808080  ; DQSA
+    D.S SD:0x800200E0 %LE %LONG 0x00007777  ; DELI
+    D.S SD:0x800200E8 %LE %LONG 0x00000000  ; DELJ
+
+    D.S SD:0x80020080 %LE %LONG 0x00333330  ; GENB
+    D.S SD:0x80020088 %LE %LONG 0x00333300  ; GENC
+   ;D.S SD:0x80020080 %LE %LONG 0x00000000  ; GENB
+   ;D.S SD:0x80020088 %LE %LONG 0x00000000  ; GENC
+;78MHz setting end
+)
+
+IF &smode==4  ; DDR x16 (PLL104MHZ)
+(
+    D.S SD:0x80020078 %LE %LONG 0x80000703  ; GENA from 70->78
+   ;D.S SD:0x80020080 %LE %LONG 0x04000000  ; GENB from 78->80
+   ;D.S SD:0x80020090 %LE %LONG 0x0004000B  ; GEND from 88->90  //FPGA
+    D.S SD:0x80020090 %LE %LONG 0x00020001  ; GEND from 88->90  //EVB
+;104MHz setting start
+    D.S SD:0x80020040 %LE %LONG 0x00334000  ; CONI
+;   D.S SD:0x80020048 %LE %LONG 0x3CF36623  ; CONJ
+    D.S SD:0x80020048 %LE %LONG 0x2C736710  ; CONJ -7.5
+
+    D.S SD:0x80020050 %LE %LONG 0x02900000  ; CONK
+    D.S SD:0x80020058 %LE %LONG 0x80037414  ; CONL
+    D.S SD:0x80020060 %LE %LONG 0x00000000  ; CONM
+    D.S SD:0x80020158 %LE %LONG 0xa0a0a0a0  ; DQSA
+    D.S SD:0x800200E0 %LE %LONG 0x00003333  ; DELI
+    D.S SD:0x800200E8 %LE %LONG 0x00000000  ; DELJ
+
+    D.S SD:0x80020080 %LE %LONG 0x00333330  ; GENB
+    D.S SD:0x80020088 %LE %LONG 0x00333300  ; GENC
+;104MHz setting end   
+
+    D.S SD:0x80020068 %LE %LONG 0x10520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x08520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x04520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x02520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x01520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x00520003 ; 
+)
+
+IF &smode==5  ; DDR x16 (PLL117MHZ)
+(
+    D.S SD:0x80020078 %LE %LONG 0x80000703  ; GENA from 70->78
+   ;D.S SD:0x80020080 %LE %LONG 0x04000000  ; GENB from 78->80
+   ;D.S SD:0x80020090 %LE %LONG 0x0004000B  ; GEND from 88->90  //FPGA
+    D.S SD:0x80020090 %LE %LONG 0x00020001  ; GEND from 88->90  //EVB
+;117MHz setting start
+    D.S SD:0x80020040 %LE %LONG 0x00334000  ; CONI
+    D.S SD:0x80020048 %LE %LONG 0x3CF36623  ; CONJ
+    D.S SD:0x80020050 %LE %LONG 0x01500000  ; CONK
+   ;D.S SD:0x80020058 %LE %LONG 0x00007714  ; CONL
+    D.S SD:0x80020058 %LE %LONG 0x80037714  ; CONL
+    D.S SD:0x80020060 %LE %LONG 0x00000000  ; CONM
+    D.S SD:0x800200C0 %LE %LONG 0x00000000  ; DELE
+    D.S SD:0x800200C8 %LE %LONG 0x00000000  ; DELF
+    D.S SD:0x800200D0 %LE %LONG 0x00000000  ; DELG
+    D.S SD:0x800200D8 %LE %LONG 0x00000000  ; DELH
+    D.S SD:0x80020158 %LE %LONG 0x80808080  ; DQSA
+    D.S SD:0x800200E0 %LE %LONG 0x00003333  ; DELI
+    D.S SD:0x800200E8 %LE %LONG 0x00000000  ; DELJ
+
+    D.S SD:0x80020080 %LE %LONG 0x00333330  ; GENB
+    D.S SD:0x80020088 %LE %LONG 0x00333300  ; GENC
+;117MHz setting end   
+)
+
+; DDR x16 (initialization)
+(
+    D.S SD:0x80020068 %LE %LONG 0x10520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x08520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x04520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x02520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x01520001 ;
+    D.S SD:0x80020068 %LE %LONG 0x00520113 ;    
+)
+
+;d.load.elf ..\out\mt3351_EVB\bin\mt3351_EVB.elf /long 
+;DATA.LOAD.AUTO ..\out\mt3351_FPGA\bin\DP_DIV_MERGED.cmprs 0x20000000
+
+;Register.Set PC 0
+
+;B.set C_Main
+;B.set isrC_Main
+;B.set dma_simul
+;do WindowSetting.cmm
+
+do Linux.cmm

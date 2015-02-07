@@ -1,0 +1,58 @@
+config SENSORS_MT6516
+	tristate "MediaTek MT6516 Sensor"
+	depends on I2C && ARCH_MT6516
+	help
+	  Say Y here if you have MediaTek MT6516 sensor.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called mt6516_sensor.
+
+menu "MT6516 Sensor Library"
+
+config SENSOR_LIB_HWMSEN
+    bool "hwmsen library"
+    depends on SENSORS_MT6516
+    help
+      Set the option as yes if you want to use hwmsen sensor library
+
+config SENSOR_LIB_AMIT
+    bool "AMIT library"
+    depends on SENSORS_MT6516
+    help
+      Set the option as yes if you want to use AMIT sensor library
+           
+config SENSORS_ADXL345
+	bool "Analog Devices ADXL345"
+	depends on SENSOR_LIB_AMIT || SENSOR_LIB_HWMSEN
+	help
+	  If you say yes here you get support for the Analog Devices
+	  AXDL345 motion monitoring chips.
+
+config SENSORS_KXTE91026
+	bool "Kionix KXTE9-1026"
+	depends on SENSOR_LIB_AMIT || SENSOR_LIB_HWMSEN
+	help
+	  If you say yes here you get support for the Kionix 
+	  KXTE9-1026 motion monitoring chips.
+
+config SENSORS_AMI304
+	bool "Aichi Steel AMI304"
+	depends on SENSOR_LIB_AMIT || SENSOR_LIB_HWMSEN
+	help
+	  If you say yes here you get support for the Aichi Stell 
+	  AMI304 magnetic sensor
+
+config SENSORS_CM3623
+	bool "Capella CM3623"
+	depends on SENSOR_LIB_AMIT || SENSOR_LIB_HWMSEN
+	help
+	  If you say yes here you get support for the Capella
+	  CM3623 ALS/PS sensor
+
+endmenu
+     
+
+     
+

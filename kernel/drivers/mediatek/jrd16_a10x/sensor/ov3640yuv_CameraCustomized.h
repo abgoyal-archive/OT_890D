@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/common/kernel/sensor/ov3640_yuv/ov3640yuv_CameraCustomized.h

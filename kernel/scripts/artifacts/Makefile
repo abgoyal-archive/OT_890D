@@ -1,0 +1,27 @@
+obj_to_install := 
+ifeq (,$(wildcard ../build/mediatek/full/config.mk))
+-include ../vendor/mediatek/$(MTK_PROJECT)/artifacts/kernel/objects.mk
+endif
+
+define word-colon
+$(word $(1),$(subst :,$(space),$(2)))
+endef
+
+
+define copy-one-file
+$(2): $(1)
+	@echo "  COPY    $$@  <---  $$<"
+	@cp -fp $$< $$@
+endef
+
+$(foreach tuple,$(obj_to_install), \
+  $(eval _des := $(call word-colon,1,$(tuple))) \
+  $(eval _src := $(call word-colon,2,$(tuple))) \
+  $(eval $(call copy-one-file,../vendor/mediatek/$(MTK_PROJECT)/artifacts/kernel/obj/$(_src).artifacts,$(_des)/$(_src))) \
+)
+
+$(foreach tuple,$(file_to_touch), \
+  $(eval $(shell mkdir -p $(dir $(tuple)))) \
+  $(eval $(shell touch $(tuple))) \
+)
+

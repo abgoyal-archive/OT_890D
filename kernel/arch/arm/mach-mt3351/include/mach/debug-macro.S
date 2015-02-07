@@ -1,0 +1,28 @@
+
+
+#include <mach/hardware.h>
+#include <mach/mt3351_reg_base.h>
+
+        .macro  addruart,rx
+        mrc p15, 0, \rx, c1, c0
+        tst \rx, #1                 @ MMU enabled?
+        moveq   \rx, #IO_PHYS       @ physical base address
+        movne   \rx, #IO_VIRT       @ virtual base
+        add     \rx, \rx, #0xfd << 8
+        .endm
+
+        .macro  senduart,rd,rx
+        strb    \rd, [\rx, #0x0]
+        .endm
+
+        .macro  waituart,rd,rx
+1001:   ldr \rd, [\rx, #0x14]   @ UART0 status
+        tst \rd, #0x1 << 5      @ write allow
+        bne 1001b
+        .endm
+
+        .macro  busyuart,rd,rx
+1002:   ldr \rd, [\rx, #0x14]   @ UART0 status
+        tst \rd, #0x1 << 5      @ uart full .eq. busy
+        bne 1002b
+        .endm

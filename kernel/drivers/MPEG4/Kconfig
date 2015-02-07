@@ -1,0 +1,6 @@
+menu "MPEG4 encoder driver"
+    depends on ARCH_MT6516
+    config MPEG4_ENCDRV
+	tristate "MPEG4 encoder driver"
+	default y
+endmenu 

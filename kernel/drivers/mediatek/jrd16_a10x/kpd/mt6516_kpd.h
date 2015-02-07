@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/jrd16_a10x/kernel/kpd/kpd/mt6516_kpd.h

@@ -1,0 +1,5 @@
+menuconfig WD_KICKER
+	tristate "WD_KICKER"
+	default y
+	---help---
+	Watch dog kicker is a module in the kernel for kicking the watch dog

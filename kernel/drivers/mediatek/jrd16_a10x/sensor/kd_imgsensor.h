@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/common/kernel/sensor/inc/kd_imgsensor.h

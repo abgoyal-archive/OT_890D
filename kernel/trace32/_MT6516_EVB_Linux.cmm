@@ -1,0 +1,76 @@
+;System.Down
+;TASK.RESet
+;Break.Delete
+
+
+System.RESet
+Break.Delete 
+
+MAP.RESet
+sYmbol.RESet
+MMU.RESet
+GROUP.RESet
+
+SYStem.CPU ARM926EJ
+System.Option Cflush on    	;flush the cache to avoid data consistency
+System.JtagClock Rtck
+;System.JtagClock 5MHz
+;System.Option WaitReset on
+;System.Option ResBreak off 	;Don't hold the ARM11 core after reset
+System.Option EnReset off
+
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set SWI OFF        
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; used to detect non-existent coprocessor
+ SYStem.Option MMU ON           ; enable space ids to virtual addresses
+
+
+
+SYStem.Up
+;System.Option EnReset on
+;SYStem.Up
+Register.REset
+
+;disbale interrupt during assembly step
+SETUP.IMASKASM	ON
+;disbale interrupt during C step
+SETUP.IMASKHLL	ON
+
+; turn off mmu
+ d.s c15:0x1 0
+
+Y.SPATH.RESET ; reset all source path
+
+Y.SPATH.SRD ../drivers/android
+Y.SPATH.SRD ../drivers/mmc/host
+Y.SPATH.SRD ../drivers/mmc/core
+Y.SPATH.SRD ../drivers/block
+Y.SPATH.SRD ../drivers/base
+;Y.SPATH.SRD ../lib
+Y.SPATH.SRD ../init
+Y.SPATH.SRD ../arch/arm/mach-mt6516
+Y.SPATH.SRD ../arch/arm/kernel
+Y.SPATH.SRD ../arch/arm/mm
+Y.SPATH.SRD ../kernel/
+;Y.SPATH.SRD ../drivers/Rhine
+Y.SPATH.SRD ../fs
+Y.SPATH.SRD ../mm
+Y.SPATH.SRD ../drivers/serial
+Y.SPATH.SRD ../drivers/input
+Y.SPATH.SRD ../drivers/input/touchscreen
+Y.SPATH.SRD ../drivers/video
+Y.SPATH.SRD ../drivers/video/mtk
+
+
+;d.load.elf ..\out\mt3351_EVB\bin\mt3351_EVB.elf /long 
+;DATA.LOAD.AUTO ..\out\mt3351_FPGA\bin\DP_DIV_MERGED.cmprs 0x20000000
+
+;Register.Set PC 0
+
+;B.set C_Main
+;B.set isrC_Main
+;B.set dma_simul
+;do WindowSetting.cmm
+
+do Linux_6516.cmm

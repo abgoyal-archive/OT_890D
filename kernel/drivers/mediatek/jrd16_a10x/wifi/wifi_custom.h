@@ -1,0 +1,1 @@
+../../../../../mtk/src/custom/jrd16_a10x/kernel/wifi/mt592x/wifi_custom.h

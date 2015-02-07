@@ -1,0 +1,22 @@
+comment "Enable WiMAX (Networking options) to see the WiMAX drivers"
+	depends on WIMAX = n
+
+if WIMAX
+
+menu "WiMAX Wireless Broadband devices"
+
+source "drivers/net/wimax/i2400m/Kconfig"
+
+endmenu
+
+endif
+
+menu "Mediatek WiMAX devices"
+
+config WIMAX_MT71X8
+
+    bool "MT71X8 devices driver"
+    default n
+
+endmenu
+

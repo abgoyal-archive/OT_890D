@@ -1,0 +1,5 @@
+config MT6516_G2D
+	bool "MediaTek (MT6516) G2D Driver"
+	depends on ARCH_MT6516
+	---help---
+	  MT6516 G2D Driver

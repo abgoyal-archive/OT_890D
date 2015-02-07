@@ -1,0 +1,229 @@
+
+
+
+#ifndef WTF_ThreadSpecific_h
+#define WTF_ThreadSpecific_h
+
+#include <wtf/Noncopyable.h>
+
+#if USE(PTHREADS)
+#include <pthread.h>
+#elif PLATFORM(QT)
+#include <QThreadStorage>
+#elif PLATFORM(WIN_OS)
+#include <windows.h>
+#endif
+
+namespace WTF {
+
+#if !USE(PTHREADS) && !PLATFORM(QT) && PLATFORM(WIN_OS)
+// ThreadSpecificThreadExit should be called each time when a thread is detached.
+// This is done automatically for threads created with WTF::createThread.
+void ThreadSpecificThreadExit();
+#endif
+
+template<typename T> class ThreadSpecific : public Noncopyable {
+public:
+    ThreadSpecific();
+    T* operator->();
+    operator T*();
+    T& operator*();
+    ~ThreadSpecific();
+
+private:
+#if !USE(PTHREADS) && !PLATFORM(QT) && PLATFORM(WIN_OS)
+    friend void ThreadSpecificThreadExit();
+#endif
+    
+    T* get();
+    void set(T*);
+    void static destroy(void* ptr);
+
+#if USE(PTHREADS) || PLATFORM(QT) || PLATFORM(WIN_OS)
+    struct Data : Noncopyable {
+        Data(T* value, ThreadSpecific<T>* owner) : value(value), owner(owner) {}
+
+        T* value;
+        ThreadSpecific<T>* owner;
+#if !USE(PTHREADS)
+        void (*destructor)(void*);
+#endif
+    };
+#endif
+
+#if USE(PTHREADS)
+    pthread_key_t m_key;
+#elif PLATFORM(QT)
+    QThreadStorage<Data*> m_key;
+#elif PLATFORM(WIN_OS)
+    int m_index;
+#endif
+};
+
+#if USE(PTHREADS)
+template<typename T>
+inline ThreadSpecific<T>::ThreadSpecific()
+{
+    int error = pthread_key_create(&m_key, destroy);
+    if (error)
+        CRASH();
+}
+
+template<typename T>
+inline ThreadSpecific<T>::~ThreadSpecific()
+{
+    pthread_key_delete(m_key); // Does not invoke destructor functions.
+}
+
+template<typename T>
+inline T* ThreadSpecific<T>::get()
+{
+    Data* data = static_cast<Data*>(pthread_getspecific(m_key));
+    return data ? data->value : 0;
+}
+
+template<typename T>
+inline void ThreadSpecific<T>::set(T* ptr)
+{
+    ASSERT(!get());
+    pthread_setspecific(m_key, new Data(ptr, this));
+}
+
+#elif PLATFORM(QT)
+
+template<typename T>
+inline ThreadSpecific<T>::ThreadSpecific()
+{
+}
+
+template<typename T>
+inline ThreadSpecific<T>::~ThreadSpecific()
+{
+    Data* data = static_cast<Data*>(m_key.localData());
+    if (data)
+        data->destructor(data);
+}
+
+template<typename T>
+inline T* ThreadSpecific<T>::get()
+{
+    Data* data = static_cast<Data*>(m_key.localData());
+    return data ? data->value : 0;
+}
+
+template<typename T>
+inline void ThreadSpecific<T>::set(T* ptr)
+{
+    ASSERT(!get());
+    Data* data = new Data(ptr, this);
+    data->destructor = &ThreadSpecific<T>::destroy;
+    m_key.setLocalData(data);
+}
+
+#elif PLATFORM(WIN_OS)
+
+// The maximum number of TLS keys that can be created. For simplification, we assume that:
+// 1) Once the instance of ThreadSpecific<> is created, it will not be destructed until the program dies.
+// 2) We do not need to hold many instances of ThreadSpecific<> data. This fixed number should be far enough.
+const int kMaxTlsKeySize = 256;
+
+long& tlsKeyCount();
+DWORD* tlsKeys();
+
+template<typename T>
+inline ThreadSpecific<T>::ThreadSpecific()
+    : m_index(-1)
+{
+    DWORD tls_key = TlsAlloc();
+    if (tls_key == TLS_OUT_OF_INDEXES)
+        CRASH();
+
+    m_index = InterlockedIncrement(&tlsKeyCount()) - 1;
+    if (m_index >= kMaxTlsKeySize)
+        CRASH();
+    tlsKeys()[m_index] = tls_key;
+}
+
+template<typename T>
+inline ThreadSpecific<T>::~ThreadSpecific()
+{
+    // Does not invoke destructor functions. They will be called from ThreadSpecificThreadExit when the thread is detached.
+    TlsFree(tlsKeys()[m_index]);
+}
+
+template<typename T>
+inline T* ThreadSpecific<T>::get()
+{
+    Data* data = static_cast<Data*>(TlsGetValue(tlsKeys()[m_index]));
+    return data ? data->value : 0;
+}
+
+template<typename T>
+inline void ThreadSpecific<T>::set(T* ptr)
+{
+    ASSERT(!get());
+    Data* data = new Data(ptr, this);
+    data->destructor = &ThreadSpecific<T>::destroy;
+    TlsSetValue(tlsKeys()[m_index], data);
+}
+
+#else
+#error ThreadSpecific is not implemented for this platform.
+#endif
+
+template<typename T>
+inline void ThreadSpecific<T>::destroy(void* ptr)
+{
+    Data* data = static_cast<Data*>(ptr);
+
+#if USE(PTHREADS)
+    // We want get() to keep working while data destructor works, because it can be called indirectly by the destructor.
+    // Some pthreads implementations zero out the pointer before calling destroy(), so we temporarily reset it.
+    pthread_setspecific(data->owner->m_key, ptr);
+#endif
+    
+    data->value->~T();
+    fastFree(data->value);
+
+#if USE(PTHREADS)
+    pthread_setspecific(data->owner->m_key, 0);
+#elif PLATFORM(QT)
+    data->owner->m_key.setLocalData(0);
+#elif PLATFORM(WIN_OS)
+    TlsSetValue(tlsKeys()[data->owner->m_index], 0);
+#else
+#error ThreadSpecific is not implemented for this platform.
+#endif
+
+    delete data;
+}
+
+template<typename T>
+inline ThreadSpecific<T>::operator T*()
+{
+    T* ptr = static_cast<T*>(get());
+    if (!ptr) {
+        // Set up thread-specific value's memory pointer before invoking constructor, in case any function it calls
+        // needs to access the value, to avoid recursion.
+        ptr = static_cast<T*>(fastMalloc(sizeof(T)));
+        set(ptr);
+        new (ptr) T;
+    }
+    return ptr;
+}
+
+template<typename T>
+inline T* ThreadSpecific<T>::operator->()
+{
+    return operator T*();
+}
+
+template<typename T>
+inline T& ThreadSpecific<T>::operator*()
+{
+    return *operator T*();
+}
+
+}
+
+#endif

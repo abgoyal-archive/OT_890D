@@ -1,0 +1,311 @@
+;--------------------------------------------------------------------------
+;
+;   Linux Demo for TRACE32 RTOS debugger
+;
+;   This batchfile demonstrates the use of the RTOS Debugger for Linux
+;
+;   The example is generated for an ARM Versatile board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+;
+;   Created by Rudi Dienstbeck / Lauterbach GmbH at 03.12.2002
+;
+;--------------------------------------------------------------------------
+
+
+&RamdiskImg="rd6516-devel.gz"
+
+; You must make sure the MAX_MEM_SIZE_SUPPORT in kernel is larger than the total
+; memory size of all banks if you want it can be work.
+&PhyRamStart=0x00600000
+&LimitRam=0x8000000-&PhyRamStart 
+&PhyRamStart2=0x10000000
+&LimitRam2=0x8000000
+&RamdiskStart=&PhyRamStart+0x00800000
+&RamdiskSize=OS.FILE.SIZE(&RamdiskImg)
+
+&BootArgStart=&PhyRamStart+0x100
+&BootArgEnd=&BootArgStart+0x743
+&KernelStart=&PhyRamStart+0x8000
+&KernelStartVirt=0xC0000000
+&KernelEndVirt=&KernelStartVirt+0x01ffffff
+
+ screen.on
+
+; Debugger Reset
+
+; winpage.reset
+ area.reset
+; WINPOS 0. 26. 75. 8. 0. 0. W000
+; area
+
+ print "resetting..."
+
+; Angelo 20080529 { move the resetting to MT3351_EVB_Linux.cmm :
+; 
+; System.Down
+; TASK.RESet
+; Break.Delete
+; MAP.RESet
+; sYmbol.RESet
+; MMU.RESet
+; GROUP.RESet
+;
+
+; setup of ICD
+
+; print "initializing..."
+; SYStem.CPU ARM926EJ
+; sys.jc 16mhz
+; SYStem.Option DACR ON          ; give Debugger global write permissions
+; TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+; TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+; TrOnchip.Set UNDEF OFF         ; used to detect non-existent coprocessor
+; SYStem.Option MMU ON           ; enable space ids to virtual addresses
+; SYStem.Up
+; SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+; Target Setup: initialize DRAM controller and peripherals
+
+; turn off mmu
+; d.s c15:0x1 0
+; Angelo 20080529 }
+
+; let the on board boot monitor initialize everything
+; Go
+; wait 2.s
+; Break
+
+
+; Load the Linux kernel
+
+ ; If you are using a flashed kernel, or if you're
+ ; loading your kernel via TFTP, use the boot monitor
+ ; to do so.
+
+ ; Use the next lines only to load the kernel into
+ ; RAM using the debugger.
+
+ print "loading Linux image..."
+
+ ; vmlinux starts physically at RAM start (=0x0) + 0x8000
+ ; (see arch/arm/kernel/head-armv.S)
+ ; We have to adjust it from the virtual start address at the label
+ ; "stext" from the System.map ("nm vmlinux | sort")
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+
+ Data.LOAD.Elf ../vmlinux &PhyRamStart-&KernelStartVirt /gnu /nosymbol
+
+; setup boot parameters with ATAG list
+ Data.Set &BootArgStart--&BootArgEnd 0    ; clear parameter area
+
+&tagAddr=&BootArgStart
+; ATAG_CORE
+data.set &tagAddr %LONG %LE 0x2
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr  %LONG %LE 0x54410001
+&tagAddr=&tagAddr+0x4
+
+
+
+; ATAG_MEM , First memory bank
+data.set &tagAddr %LONG %LE 0x4
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x54410002
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE &LimitRam // size
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE &PhyRamStart // start
+&tagAddr=&tagAddr+0x4
+
+
+;&HW_VER=Data.Long(D:0x80001000)
+
+;IF &HW_VER!=0x8a00
+;	print "Warning! This board might be not supported the second memory banks."
+
+;FIXEME: We assume ver E1 is only for the reference phone V2 which have 2 memory banks.
+; ATAG_MEM, Second memory bank
+data.set &tagAddr %LONG %LE 0x4
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x54410002
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE &LimitRam2 // size
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE &PhyRamStart2 // start
+&tagAddr=&tagAddr+0x4
+
+; ATAG_CMDLINE
+data.set &tagAddr %LONG %LE 0x12 ;= 2 + (len(cmdline) + 3)/4
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x54410009
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr "console=tty0 console=ttyMT0,921600n1 rdinit=init root=/dev/ram" 0x0
+&tagAddr=&tagAddr+0x40
+
+; ATAG_INITRD2
+data.set &tagAddr %LONG %LE 0x4
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x54420005
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE &RamdiskStart
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE &RamdiskSize
+&tagAddr=&tagAddr+0x4
+
+
+; ATAG_NONE
+data.set &tagAddr %LONG %LE 0x0
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+
+; Set Register PC, R0, R1, R2
+ Register.RESet
+ Register.Set PC &KernelStart ; Set PC on start address of image
+ Register.Set R1 0x1974 ; Set machine type in R1; see arch/arm/tools/mach-types  ; 0xD17 = 3351 = MT3351
+ Register.Set R2 &BootArgStart ; Set R2 to start addr of ATAG list
+
+; Loading RAM disk
+
+ print "loading ram disk"
+
+ ; Load rom file system image into ram disk
+ ; The load address is hardcoded in arch/arm/mach-versatile/arch.c
+ Data.LOAD.Binary &RamdiskImg &RamdiskStart /noclear /nosymbol
+
+; Load the Linux kernel symbols into the debugger
+
+ print "loading Linux kernel symbols..."
+
+Data.LOAD.Elf ../vmlinux /gnu /nocode
+
+y.spath.reset
+y.spath.srd ../init
+y.spath.srd ../kernel
+y.spath.srd ../arch/arm/kernel
+y.spath.srd ../arch/arm/mm
+y.spath.srd ../arch/arm/lib
+y.spath.srd ../arch/arm/mach-mt6516
+y.spath.srd ../lib
+
+; Open a Code Window -- we like to see something
+
+; WINPOS 0. 0. 75. 20.
+; [Angelo] 20080523 : disable those windows setting, since we already have a windows_setting.cmm to to it !
+; Register
+; Data.List
+; screen
+
+; Run over MMU & Interrupt initialization
+
+;break
+
+ go start_kernel /Onchip
+ wait !run()
+ MMU.Create &KernelStartVirt--&KernelEndVirt &PhyRamStart ; map kernel pages at RAM start
+ MMU.COMMON 0xc0000000--0xffffffff            ; common area for kernel and processes
+ MMU.ON 			              ; Turn on debugger's internal MMU translation
+ MMU.AUTOSCAN ON                                ; auto scan MMU translation table upon failing to access given virtual addr
+ MMU.SCANALL
+
+ TASK.CONFIG linux       ; loads Linux awareness (linux.t32)
+ MENU.ReProgram linux    ; loads Linux menu (linux.men)
+ HELP.FILTER.Add rtoslinux  ; add linux awareness manual to help filter
+
+GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+;b.s 0x0000002f /READWRITE /OnChip
+
+;go _CliShowHelp /Onchip
+
+; Angelo 20080530 { reset the trace32 windows
+
+do Windows.cmm
+do BreakPoints.cmm
+
+; Angelo 20080530 }
+
+; go
+ end
+
+
+;
+;
+;
+
+ Go __init_end /Onchip
+
+ print "initializing target and debugger MMU..."
+ wait !run()
+
+ Go
+
+ ; Map the virtual kernel symbols to physical addresses
+ ; to give the debugger access to it before CPU MMU is
+ ; initialized
+
+ MMU.Create 0xc0000000--0xc1ffffff 0x00000000
+ MMU.COMMON 0xc0000000--0xffffffff
+ ;MMU.ON
+
+; Initialize Linux Awareness
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+
+ print "initializing multitask support..."
+ TASK.CONFIG linux       ; loads Linux awareness (linux.t32)
+ MENU.ReProgram linux    ; loads Linux menu (linux.men)
+ HELP.FILTER.Add rtoslinux  ; add linux awareness manual to help filter
+
+; Group kernel area to be displayed with red bar
+
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+ print "done."
+
+
+; -------- Application Debugging --------------
+; ------------- e.g. "demo" ------------------
+
+ ;do ../app_debug demo
+
+ ;Go
+ ;task.watch.view "demo"
+
+ enddo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
